@@ -112,6 +112,9 @@ const Login = () => {
                         </button>
 
                         {/* <ContinueWithGoogle /> */}
+                        <a href="/api/auth/google" className="mt-4 w-full bg-[#4285f4] text-white font-bold tracking-wide py-4 px-8 rounded hover:bg-[#3367d6] transition-colors duration-300">
+                            Continue with Google
+                        </a>
 
                         <div className="text-center mt-6">
                             <a href="/register" className="text-sm text-[#999077] hover:text-[#FFD700] transition-colors border-b border-transparent hover:border-[#FFD700] py-0.5">

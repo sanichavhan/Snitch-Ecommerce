@@ -77,3 +77,27 @@ export const login = async (req,res) => {
         return res.status(500).json({message: "Internal server error"})
     }
 }
+
+export const googleCallback = async (req,res) =>{
+    try {
+        const user = req.user;
+        
+        if(!user) {
+            return res.redirect("http://localhost:5173/login");
+        }
+        
+        const token = jwt.sign({
+            id: user._id
+        }, config.JWT_SECRET, {
+            expiresIn: config.JWT_EXPIRE
+        });
+        
+        res.cookie('token', token);
+        
+        // Redirect to frontend with success or send JSON
+        res.redirect(`http://localhost:5173/?success=true`);
+    } catch (error) {
+        console.error("Error in googleCallback:", error);
+        res.redirect("http://localhost:5173/login?error=auth_failed");
+    }
+}
