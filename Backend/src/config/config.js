@@ -9,7 +9,12 @@ if(!process.env.JWT_SECRET){
     console.error("JWT_SECRET is not defined in the environment variables.")
     process.exit(1)
 }
+if(!process.env.JWT_EXPIRE){
+    console.error("JWT_EXPIRE is not defined in the environment variables.")
+    process.exit(1)
+}
 export const config = {
     MONGO_URI: process.env.MONGO_URI,
-    JWT_SECRET: process.env.JWT_SECRET
+    JWT_SECRET: process.env.JWT_SECRET,
+    JWT_EXPIRE: process.env.JWT_EXPIRE
 }

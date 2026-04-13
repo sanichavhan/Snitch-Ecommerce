@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
@@ -17,6 +18,7 @@ userSchema.pre('save',async function() {
     const hash = await bcrypt.hash(this.password, 10);
 
     this.password = hash;
+
 })
 
 userSchema.methods.comparePassword = async function(candidatePassword) {
