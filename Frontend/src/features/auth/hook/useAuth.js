@@ -1,11 +1,22 @@
 /* eslint-disable no-unused-vars */
 import { setUser, setLoading, setError } from "../state/auth.slice"
-import { register,login } from "../service/auth.api"
+import { register,login, googleLogin } from "../service/auth.api"
 import { useDispatch } from "react-redux"
 
 export const useAuth = () => {
 
     const dispatch = useDispatch()
+
+    function handleGoogleLogin() {
+        try {
+            dispatch(setLoading(true))
+            googleLogin()
+        } catch (error) {
+            const errorMsg = error.message || "Google login failed"
+            dispatch(setError(errorMsg))
+            dispatch(setLoading(false))
+        }
+    }
 
     async function handleRegister({email, contact, password, fullname,isSeller = false}) {
         try {
@@ -37,7 +48,7 @@ export const useAuth = () => {
             throw error
         }
     }
-    return { handleRegister, handleLogin }
+    return { handleRegister, handleLogin, handleGoogleLogin }
 }
 
 

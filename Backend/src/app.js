@@ -12,7 +12,12 @@ const app = express()
 
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(cookieParser());
 app.use(passport.initialize());
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true
+}))
 
 passport.use(new GoogleStrategy({
     clientID: config.GOOGLE_CLIENT_ID,
@@ -22,13 +27,6 @@ passport.use(new GoogleStrategy({
         return done(null, profile);
     }
 ));
-
-app.use(cookieParser());
-// app.use(cors({
-//     origin: "http://localhost:5173",
-//     methods: [ "GET", "POST", "PUT", "DELETE" ],
-//     credentials: true
-// }))
 
 app.get("/", (_req, res) => {
     res.status(200).json({ message: "Server is running" });

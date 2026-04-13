@@ -10,7 +10,12 @@ async function sendTokenResponse(user, res, message) {
             expiresIn: config.JWT_EXPIRE
         })
 
-        res.cookie('token', token);
+        res.cookie('token', token, {
+            httpOnly: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            sameSite: 'lax',
+            secure: config.NODE_ENV === 'production'
+        });
 
         res.status(200).json({
             success: true,
@@ -80,24 +85,68 @@ export const login = async (req,res) => {
 
 export const googleCallback = async (req,res) =>{
     try {
-        const user = req.user;
+        const {id, displayName, emails, photos} = req.user
+        const email = emails?.[0]?.value
         
-        if(!user) {
-            return res.redirect("http://localhost:5173/login");
+        if (!email) {
+            return res.redirect(`http://localhost:5173/login?error=No email provided by Google`)
         }
+
+        let user = await userModel.findOne({email})
         
+        if (!user) {
+            user = new userModel({
+                email,
+                fullname: displayName || 'Google User',
+                avatar: photos?.[0]?.value,
+                googleId: id,
+                role: 'buyer'
+            })
+            await user.save()
+        }
+
         const token = jwt.sign({
             id: user._id
         }, config.JWT_SECRET, {
             expiresIn: config.JWT_EXPIRE
-        });
+        })
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            sameSite: 'lax',
+            secure: config.NODE_ENV === 'production'
+        })
         
-        res.cookie('token', token);
-        
-        // Redirect to frontend with success or send JSON
-        res.redirect(`http://localhost:5173/?success=true`);
+        // Redirect to home page - token is in secure cookie
+        res.redirect('http://localhost:5173/')
     } catch (error) {
-        console.error("Error in googleCallback:", error);
-        res.redirect("http://localhost:5173/login?error=auth_failed");
+        console.error("Error in googleCallback:", error)
+        res.redirect(`http://localhost:5173/login?error=${encodeURIComponent(error.message)}`)
+    }
+}
+
+export const getCurrentUser = async (req, res) => {
+    try {
+        const user = await userModel.findById(req.user.id).select('-password')
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' })
+        }
+
+        res.status(200).json({
+            success: true,
+            user: {
+                id: user._id,
+                email: user.email,
+                contact: user.contact,
+                fullname: user.fullname,
+                role: user.role,
+                avatar: user.avatar
+            }
+        })
+    } catch (error) {
+        console.error("Error in getCurrentUser:", error)
+        res.status(500).json({ success: false, message: "Internal server error" })
     }
 }
